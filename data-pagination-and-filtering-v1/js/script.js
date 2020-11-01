@@ -2,51 +2,111 @@
 Treehouse Techdegree:
 FSJS Project 2 - Data Pagination and Filtering
 */
-const items_per_page = 9;
+
+/*
+Declaring global constants to ensure usability throughout the program
+*/
+const itemsPerPage = 9;
 const studentList = document.querySelector('.student-list');
+const linkList = document.querySelector ('.link-list');
+const header = document.querySelector('.header');
 
-
-/*
-For assistance:
-   Check out the "Project Resources" section of the Instructions tab: https://teamtreehouse.com/projects/data-pagination-and-filtering#instructions
-   Reach out in your Slack community: https://treehouse-fsjs-102.slack.com/app_redirect?channel=unit-2
-*/
-
-
-
-/*
-Created a showPage function, displaying 9 students per page
-*/
-function showPage(list, page) {
-   const startIndex = (page * items_per_page) - items_per_page;
-   const endIndex = startIndex + items_per_page;
-
-studentList.innerHTML = '';
-
-   for (let i = 0; i < list.length; i++) {
-      if(i >= startIndex && i < endIndex) {
-         studentList.insertAdjacentHTML("beforeend",
-          `<li class="student-item cf">
-            <div class="student-details">
-               <img class="avatar" src="${list[i].picture.large}" alt="Profile Picture">
-               <h3>${list[i].name.first} ${list[i].name.last}</h3>
-               <span class="email">${list[i].email}</span>
-            </div>
-            <div class="joined-details">
-               <span class="date">Joined ${list[i].registered.date}</span>
-            </div>
-         </li>`);
-      }
-   } 
+function getSearchInput() {
+   return document.getElementById('search');
 }
 
-showPage(data, 1);
+function search(searchString) {
+   let searchResults = [];
+   
+   for (let i = 0; i < data.length; i++) {
+      const student = data[i];
+      const lowerFirstName = student.name.first.toLowerCase();
+      const lowerLastName = student.name.last.toLowerCase();
+      if (lowerFirstName.indexOf(searchString) > -1 || lowerLastName.indexOf(searchString) > -1) {
+         searchResults.push(student);
+      }
+   }
+   showPage(searchResults, 1);
+   addPagination(searchResults);
+}
+
+function addSearchField() {
+   header.insertAdjacentHTML('beforeend', `
+      <label for="search" class="student-search">
+         <input id="search" placeholder="Search by name...">
+         <button type="button"><img src="img/icn-search.svg" alt="Search icon"></button>
+      </label>`);
+   const searchInput = getSearchInput();
+      searchInput.addEventListener('keyup', (e) => {
+         search(searchInput.value.toLowerCase());
+      });
+}
+/*
+Displays a page of items from list with length of itemsPerPage
+*/
+function showPage(list, page) {
+   const startIndex = (page * itemsPerPage) - itemsPerPage;
+   const endIndex = Math.min(startIndex + itemsPerPage, list.length);
+
+   studentList.innerHTML = '';
+
+   // dynamically adding the students information and only displaying itemsPerPage
+   for (let i = startIndex; i < endIndex; i++) {
+      const student = list[i];
+      const studentHTML = `
+         <li class="student-item cf">
+            <div class="student-details">
+               <img class="avatar" src="${student.picture.large}" alt="Profile Picture">
+               <h3>${student.name.first} ${student.name.last}</h3>
+               <span class="email">${student.email}</span>
+            </div>
+            <div class="joined-details">
+               <span class="date">Joined ${student.registered.date}</span>
+            </div>
+         </li>`;
+
+      studentList.insertAdjacentHTML("beforeend", studentHTML);
+   } 
+   // If no results from search, page displays "No Results Found"
+   const noResultsMessage = document.querySelector('.no-results');
+   if (!list.length) {
+      noResultsMessage.className = 'no-results';
+   } else {
+      noResultsMessage.className = 'hidden no-results';
+   }
+}
 
 /*
-Create the `addPagination` function
-This function will create and insert/append the elements needed for the pagination buttons
+addPagination function created for pages to dynamically be added to the DOM
+and load the proper information when clicked.
 */
+function addPagination(list) {
+   const numOfPages = Math.ceil(list.length / itemsPerPage);
 
+   linkList.innerHTML = ''; // setting the HTML for the pages to nothing
 
+   // adding the proper HTML to the DOM for the buttons, including a number within the button.
+   for (let pageNumber = 1; pageNumber <= numOfPages; pageNumber++) {
+      linkList.insertAdjacentHTML("beforeend", `
+         <li>
+            <button type="button" class="${pageNumber === 1 ? 'active' : ''}">${pageNumber}</button>
+         </li>
+      `);
+   }
+   // adding click event to 
+   linkList.addEventListener('click', (e) => {
+      const clickedPageButton = e.target;
+      if (clickedPageButton.tagName === 'BUTTON') {
+         const activePageButton = document.querySelector('.active');
+         activePageButton.className = '';
 
-// Call functions
+         clickedPageButton.className = 'active';
+         showPage(list, clickedPageButton.textContent);
+      }
+   });
+}
+
+//Calling the Functions
+addPagination(data);
+showPage(data, 1);
+addSearchField();
