@@ -1,4 +1,3 @@
-http://github.com - automatic!
 [GitHub](http://github.com)
 
 A simple directory application for showing students. There are 42 students, 9 per page, with proper pagination and filtering via searching.
